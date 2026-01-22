@@ -1,0 +1,62 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(
+            name: 'GIT_BRANCH',
+            defaultValue: 'main',
+            description: 'Git branch to build'
+        )
+
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['dev', 'qa', 'prod'],
+            description: 'Select deployment environment'
+        )
+
+        booleanParam(
+            name: 'SKIP_TESTS',
+            defaultValue: false,
+            description: 'Skip unit tests'
+        )
+    }
+
+    tools {
+        maven 'M3'
+        jdk 'JDK17'
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                echo "Checking out branch: ${params.GIT_BRANCH}"
+                git branch: params.GIT_BRANCH,
+                    url: 'https://github.com/gayas5/spring3-jenkins-pipeline-practice.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo "Environment: ${params.ENVIRONMENT}"
+
+                script {
+                    if (params.SKIP_TESTS) {
+                        sh 'mvn clean package -DskipTests'
+                    } else {
+                        sh 'mvn clean package'
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "GAYAS Build SUCCESS for ${params.ENVIRONMENT}"
+        }
+        failure {
+            echo " Build FAILED"
+        }
+    }
+}
