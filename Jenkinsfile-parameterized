@@ -22,8 +22,8 @@ pipeline {
     }
 
     tools {
-        maven 'M3'
-        jdk 'JDK17'
+        maven 'M3'   // Make sure M3 is configured in Jenkins Global Tool Config
+        jdk 'JDK17'  // Make sure JDK17 is configured
     }
 
     stages {
@@ -39,6 +39,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo "Environment: ${params.ENVIRONMENT}"
+                echo "Skip tests: ${params.SKIP_TESTS}"
 
                 script {
                     if (params.SKIP_TESTS) {
@@ -54,9 +55,19 @@ pipeline {
     post {
         success {
             echo "GAYAS Build SUCCESS for ${params.ENVIRONMENT}"
+
+            // Auto-archive artifacts for evidence
+            archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
         }
         failure {
-            echo " Build FAILED"
+            echo "Build FAILED"
+
+            // Optionally, archive whatever was generated even if failed
+            archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
+        }
+        always {
+            // Optional: keep console logs or other files if needed
+            echo "Build completed at ${new Date()}"
         }
     }
 }
