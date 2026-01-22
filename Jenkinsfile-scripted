@@ -1,0 +1,29 @@
+node {
+
+    // Set variables
+    def mvnHome = tool name: 'Maven', type: 'maven'
+
+    stage('Checkout') {
+        echo "Checking out from GitHub..."
+        checkout scm
+    }
+
+    stage('Build') {
+        echo "Building Maven project..."
+        sh "${mvnHome}/bin/mvn clean package"
+    }
+
+    stage('Test JAR') {
+        echo "Testing the generated JAR..."
+        sh "java -jar target/spring3-jenkins-pipeline-practice-1.0-SNAPSHOT.jar || true"
+    }
+
+    stage('Archive Artifact') {
+        echo "Archiving the JAR..."
+        archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+    }
+
+    stage('Build Complete') {
+        echo "GAYAS Scripted Pipeline Build Finished Successfully!"
+    }
+}
